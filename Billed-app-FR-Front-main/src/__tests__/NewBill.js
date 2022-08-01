@@ -104,27 +104,64 @@ describe("And I DON'T fill required form fields", () => {
     // Submit form
     const formEl = screen.getByTestId("form-new-bill");
     fireEvent["submit"](formEl);
-  })
-})
-    //
-      /*const html = NewBillUI()
-      document.body.innerHTML = html
-      //to-do write assertion
-      
-      // Choose a file
-      fireEvent["change"](fileInputEl, {
-        target: {
-          ...fileInputEl,
-          files: [file],
-        },
+
+    // Should NOT be redirected
+    expect(window.location.hash).toBe(ROUTES_PATH.NewBill);
+  });
+});
+
+// test d'intégration POST
+describe("Given I am connected as an employee", () => {
+  describe("When I am on NewBill Page", () => {
+    describe("And I DO fill required form fields", () => {
+      describe("If API throws an error", () => {
+        test("Then submit should NOT redirect on Bills page", async () => {
+          await setup();
+          window.onNavigate(ROUTES_PATH.NewBill);
+
+          const bills = mockStore.bills();
+          jest.spyOn(bills, "update").mockImplementation((bill) => {
+            return Promise.reject(/Erreur 500/);
+          });
+
+          // Helpers
+          const formEl = screen.getByTestId("form-new-bill");
+          const elems = {
+            type: screen.getByTestId("expense-type"),
+            name: screen.getByTestId("expense-name"),
+            date: screen.getByTestId("datepicker"),
+            amount: screen.getByTestId("amount"),
+            vat: screen.getByTestId("vat"),
+            pct: screen.getByTestId("pct"),
+            commentary: screen.getByTestId("commentary"),
+            fileUrl: screen.getByTestId("file"),
+            fileName: screen.getByTestId("file"),
+          };
+          const now = new Date();
+          const day = ("0" + now.getDate()).slice(-2);
+          const month = ("0" + (now.getMonth() + 1)).slice(-2);
+          const today = now.getFullYear() + "-" + month + "-" + day;
+
+          // Fill form inputs
+          elems.name.value = "Test";
+          elems.date.value = today;
+          elems.amount.value = 10;
+          elems.commentary.value = "Commentaire de test";
+          elems.vat.value = 70;
+          elems.pct.value = 20;
+
+          // Submit form
+          fireEvent["submit"](formEl);
+          await waitFor(() => process.nextTick);
+
+          // Should have called store.bills().update AND NOT being redirected to Bills page
+          expect(bills.update).toBeCalled();
+          expect(window.location.hash).not.toBe(ROUTES_PATH.Bills);
+
+          jest.restoreAllMocks();
+        });
       });
-      await waitFor(() => process.nextTick);
-
-      // Assertions
-      expect(bills.create).not.toBeCalled();
-      expect(window.location.hash).toBe(ROUTES_PATH.NewBill);
-
-      jest.restoreAllMocks();
     })
   })
-})*/
+})
+    
